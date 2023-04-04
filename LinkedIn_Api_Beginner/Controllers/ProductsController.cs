@@ -24,11 +24,52 @@ namespace LinkedIn_Api_Beginner.Controllers
         //    return _shopContext.Products.ToList();
         //}
 
+        //[HttpGet]
+        //public async Task<ActionResult> GetAllProductss([FromQuery] QueryParameters queryParameters)
+        //{
+           
+        //    return Ok(await products.ToListAsync());
+        //}
+
         [HttpGet]
-        public async Task<ActionResult> GetAllProductss()
+        public async Task<ActionResult> FilteringProducts([FromQuery] ProductQueryParameters productQueryParameters)
         {
-            var products = await _shopContext.Products.ToListAsync();
-            return Ok(products);
+            /*
+             This is to access the products and since we only want to return part of the products we using IQueryable to access part of the products.
+             By doing this we are skipping the products we are not looking for.
+             */
+            IQueryable<Product> products = _shopContext.Products;
+
+            /*
+                Filtering through products between a max and min price 
+                Or from a Min Price or from a Max Price 
+             */
+            if (productQueryParameters.MinPrice != null)
+            {
+                products = products.Where(
+                    p => p.Price >= productQueryParameters.MinPrice.Value);
+            }
+
+            if (productQueryParameters.MaxPrice != null)
+            {
+                products = products.Where(
+                    p => p.Price <= productQueryParameters.MaxPrice.Value);
+            }
+
+            /*
+           .Skip() 'skips' over the first 'n' elemenets in the sequence and returns a new sequence containing the remaining elements after the first 'n' elements.
+           .Take() will return the amount of elements that is specified in a sequence of numbers.
+            We taking the size and multiplying it with the page and whatever we got is amount of products we are returning and with 1 being our default value for page.
+            
+             */
+
+            products = products
+                .Skip(productQueryParameters.Size * (productQueryParameters.Page - 1))
+                .Take(productQueryParameters.Size);
+
+
+
+            return Ok(await products.ToListAsync());
         }
 
         [HttpGet("{id}")]
@@ -45,11 +86,11 @@ namespace LinkedIn_Api_Beginner.Controllers
         [HttpPost]
         public async Task<ActionResult<Product>> PostProduct(Product product)
         {
-            //if(!ModelState.IsValid) 
+            //if (!ModelState.IsValid)
             //{
             //    return BadRequest();
             //}
-           _shopContext.Products.Add(product);
+            _shopContext.Products.Add(product);
             await _shopContext.SaveChangesAsync();
 
             return CreatedAtAction(
