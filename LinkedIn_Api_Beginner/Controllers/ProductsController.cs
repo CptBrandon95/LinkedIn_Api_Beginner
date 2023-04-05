@@ -56,6 +56,26 @@ namespace LinkedIn_Api_Beginner.Controllers
                     p => p.Price <= productQueryParameters.MaxPrice.Value);
             }
 
+            // Searching for products by their Sku but first we need to make sure if the product is empty or not
+            // Once the check is completed, we check if the Sku matches with what we have in our database
+            if (!string.IsNullOrEmpty(productQueryParameters.Sku))
+            {
+                products = 
+                    products.Where(p => p.Sku == productQueryParameters.Sku);
+            }
+
+            /*
+             Same is being applied to searching for the name.
+             However, the big difference is we are doing a more intense search by converting everything to lowercase and instead of say equal we using contain.
+             We are converting user input and the system values to lower to match each other.
+             */
+
+            if (!string.IsNullOrEmpty(productQueryParameters.Name))
+            {
+                products =
+                    products.Where(p => p.Name.ToLower().Contains(productQueryParameters.Name.ToLower()));
+            }
+
             /*
            .Skip() 'skips' over the first 'n' elemenets in the sequence and returns a new sequence containing the remaining elements after the first 'n' elements.
            .Take() will return the amount of elements that is specified in a sequence of numbers.
